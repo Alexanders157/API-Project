@@ -5,18 +5,15 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Http\Resources\ProductResource;
-use App\Actions\Imag;
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::all();
+        $products = Product::filter($request->all())->get();
         return ProductResource::collection($products);
     }
 
@@ -67,42 +64,62 @@ class ProductController extends Controller
      */
     public function destroy(string $id)
     {
-        $product = Product::find($id);
-        Storage::disk('public')->delete('products/' . $product->picture);
-        Storage::disk('public')->delete('products/s_' . $product->picture);
-        $product->delete();
-        return new ProductResource($product);
+        //
     }
 
-    public function addCatalog(Product $product, Request $request){
-        abort_if(!$request->catalog_id, '401','catalog_id is empty');
+    public function addCatalog(Product $product, Request $request)
+    {
+        abort_if(!$request->catalog_id, '401', 'catalog_id is empty');
         $product->catalogs()->syncWithoutDetaching([$request->catalog_id]);
         return new ProductResource($product);
     }
-    public function detachCatalog(Product $product, Request $request){
-        abort_if(!$request->catalog_id, '401','catalog_id is empty');
+
+    public function detachCatalog(Product $product, Request $request)
+    {
+        abort_if(!$request->catalog_id, '401', 'catalog_id is empty');
         $product->catalogs()->detach([$request->catalog_id]);
         return new ProductResource($product);
     }
 
-    public function addPicture(Request $request, Product $product)
+    public function price()
     {
-       $pic = App::make(Imag::class)->url($request->picture);
-
-       if ($pic) {
-           $product->update([
-               'picture' => $pic,
-           ]);
-       }
-       return new ProductResource($product);
+        $products_scope = Product::one()->two()->orderBy('id', 'DESC')->get();
+        return ProductResource::collection($products_scope);
     }
 
-    public function deletePicture(Product $product) {
-        Storage::disk('public')->delete('products/' . $product->picture);
-        Storage::disk('public')->delete('products/s_' . $product->picture);
-        $product->update([
-            'picture' => null,
-        ]);
+    public function postPicture(Product $product, Request $request)
+    {
+        abort_if(!$request->hasFile('picture'), '401', 'picture is empty');
+        $product->addMedia($request->file('picture'))->toMediaCollection('default');
         return new ProductResource($product);
     }
+
+    public function getPicture() {
+        $scope = Product::picture()->get();
+        return response()->json($scope);
+    }
+
+    public function specificPrice(Request $request)
+    {
+        $price = $request->input('price');
+
+        if ($price) {
+            $data = Product::specificPrice($price);
+        } else {
+            return response()->json(['error' => 'price is empty']);
+        }
+
+        return response()->json($data);
+    }
+
+    public function priceFirst() {
+        $scope = Product::priceFirst()->get();
+        return response()->json($scope);
+    }
+
+    public function priceTwo() {
+        $scope = Product::priceTwo()->get();
+        return response()->json($scope);
+    }
+
 }

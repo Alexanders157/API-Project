@@ -14,14 +14,20 @@ class ProductResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $pic = [];
+        if($this->getMedia()){
+            foreach($this->getMedia() as $media){
+                $pic[$media->id] = $media->getFullUrl();
+            }
+        }
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'price' => $this->price,
             'description' => $this->description,
             'description_short' => $this->description_short,
-            'picture' => $this->picture,
-            'catalogs' => $this->when($this->catalogs()->exists(), CatalogResource::collection($this->catalogs)),
-            'counts' => $this->when($this->catalogs()->exists(), $this->catalogs()->count()),
+            'catalogs' => CatalogResource::collection($this->whenLoaded('catalogs')),
+            'pictures' => $this->when(!empty($pic), $pic)
         ];
     }
 }

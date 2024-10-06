@@ -54,4 +54,9 @@ class UserApiController extends Controller
             'message' => 'User deleted successfully'
         ]);
     }
+
+    public function admin() {
+        $scope = User::admin()->get();
+        return response()->json($scope);
+    }
 }

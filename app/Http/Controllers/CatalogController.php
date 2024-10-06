@@ -11,11 +11,10 @@ class CatalogController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $catalogs = Catalog::all();
+        $catalogs = Catalog::filter($request->all())->get();
         return  CatalogResource::collection($catalogs);
-
     }
 
     /**
