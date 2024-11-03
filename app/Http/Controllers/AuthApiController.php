@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UserRequest;
+use App\Jobs\SendWelcomeEmailJob;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -19,6 +20,9 @@ class AuthApiController extends Controller
             'user' => $user,
             'token' => $token
         ];
+
+        SendWelcomeEmailJob::dispatch($user);
+
         return response()->json($answer);
     }
     public function login(Request $request){

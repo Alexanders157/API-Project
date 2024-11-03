@@ -73,13 +73,13 @@ class ProductController extends Controller
         $product->catalogs()->syncWithoutDetaching([$request->catalog_id]);
         return new ProductResource($product);
     }
-
     public function detachCatalog(Product $product, Request $request)
     {
         abort_if(!$request->catalog_id, '401', 'catalog_id is empty');
         $product->catalogs()->detach([$request->catalog_id]);
         return new ProductResource($product);
     }
+
 
     public function price()
     {

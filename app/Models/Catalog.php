@@ -10,7 +10,14 @@ class Catalog extends Model
 {
     use HasFactory, Filterable;
     protected $fillable = ['name', 'parent_id'];
-    public function catalog(){
-        return $this->belongsTo(Catalog::class,'parent_id');
+
+    public function catalog()
+    {
+        return $this->belongsTo(Catalog::class, 'parent_id');
+    }
+
+    public function products()
+    {
+        return $this->belongsToMany(Product::class);
     }
 }
